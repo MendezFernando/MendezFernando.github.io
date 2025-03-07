@@ -1,0 +1,58 @@
+---
+import LetterGlitch from "../React/LetterGlitch.tsx";
+import LogoWall from "../components/logoWall.astro";
+import SkillsList from "../React/SkillsList.tsx";
+---
+
+<section class="text-[var(--white)] mt-12 md:mt-0" id="aboutMe">
+  <div class="max-w-5xl mx-auto space-y-8 md:py-36 pb-14">
+    <div class="text-left space-y-4">
+      <p class="text-md md:text-lg text-[var(--white-icon)] shiny-white">
+        Hi, I'm Fernando Méndez
+      </p>
+      <div
+        class="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-8 md:gap-4"
+      >
+        <h1 class="text-[var(--white)] text-1xl md:text-6xl font-medium text-pretty leading-none">
+          About Me
+        </h1>
+        <p class="text-md md:text-2xl text-[var(--white-icon)]">
+          <span class="text-[var(--sec)] shiny-sec">
+            Excel, Power BI, SQL, Python y machine learning
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Imagen debajo de "About Me" -->
+    <div >
+      <img 
+      
+        src="/public/foto.png"
+        alt="Foto de Fernando Méndez" 
+        class="w-full max-w-md rounded-lg shadow-lg"
+      />
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .shiny-sec {
+    background: linear-gradient(135deg, #a476ff 25%, #eee5ff 50%, #a476ff 75%);
+    background-size: 400% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 3s linear infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      background-position: 100% 50%;
+    }
+    30%,
+    70% {
+      background-position: 0% 50%;
+    }
+  }
+</style>
