@@ -1,58 +1,76 @@
 ---
-import LetterGlitch from "../React/LetterGlitch.tsx";
-import LogoWall from "../components/logoWall.astro";
-import SkillsList from "../React/SkillsList.tsx";
+import Card from "../components/Card.astro";
+import EXPERIENCES from "../collections/experiences.json"
+import TimelineItem from "../components/TimelineItem.astro";
+
 ---
 
-<section class="text-[var(--white)] mt-12 md:mt-0" id="aboutMe">
-  <div class="max-w-5xl mx-auto space-y-8 md:py-36 pb-14">
-    <div class="text-left space-y-4">
-      <p class="text-md md:text-lg text-[var(--white-icon)] shiny-white">
-        Hi, I'm Fernando Méndez
-      </p>
-      <div
-        class="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-8 md:gap-4"
+<section id="about" class="flex flex-col max-w-5xl mx-auto">
+  <h2
+    class="text-2xl md:text-4xl font-bold text-gray-950 dark:text-white mb-8"
+  >
+    About Me
+  </h2>
+  
+
+<article class="max-w-5xl mx-auto flex lg:flex-row md:flex-col sm:flex-col gap-4 p-4">
+  <Card className="text-gray-600 dark:text-gray-400 h-fit">
+    <div class="flex flex-col gap-2 text-sm sm:text-base">
+      <h3
+        class="text-[var(--sec)] shiny-sec text-lg sm:text-xl font-semibold text-gray-950 dark:text-white"
       >
-        <h1 class="text-[var(--white)] text-1xl md:text-6xl font-medium text-pretty leading-none">
-          About Me
-        </h1>
-        <p class="text-md md:text-2xl text-[var(--white-icon)]">
-          <span class="text-[var(--sec)] shiny-sec">
-            Excel, Power BI, SQL, Python y machine learning
-          </span>
-        </p>
-      </div>
+        Short Bio
+      </h3>
+      <p>
+        I'm an experienced FullStack Web Developer focused on the NestJS and
+        Angular ecosystem. I'm compromised with the quality of the code and
+        the reliability of the websites I build.
+      </p>
+      <p>
+        Currently, I'm developing a personal project called ThemeMarket, a
+        free templates marketplace for developers.
+      </p>
+      <p>
+        I like to share my knowledge with the community so I often make
+        tutorials in my YouTube channel.
+      </p>
     </div>
+    <div class="flex flex-col gap-2">
+      <h3
+        class="text-lg sm:text-xl font-semibold text-gray-950 dark:text-white"
+      >
+        Want to know a bit more?
+      </h3>
+      <a
+        href="/docs/cv.pdf"
+        role="button"
+        aria-label="Download CV"
+        download
+        class="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-800 dark:bg-blue-700 focus:ring-4 focus:outline-hidden focus:ring-blue-200 dark:focus:ring-blue-950 text-white w-fit font-semibold"
+        >Download CV</a
+      >
+    </div>
+  </Card>
+  <Card className="p-8">
+    <ol class="relative border-s border-gray-300 dark:border-neutral-800">
+      {
+        EXPERIENCES.map((experience) => (
+          <TimelineItem
+            title={experience.company}
+            description={experience.description}
+            date={experience.dates}
+          >
+            <div
+              slot="icon"
+              class="size-full p-1"
+              set:html={experience.svgIcon}
+            />
+          </TimelineItem>
+        ))
+      }
+    </ol>
+  </Card>
+</article>
 
-    <!-- Imagen debajo de "About Me" -->
-    <div >
-      <img 
-      
-        src="/public/foto.png"
-        alt="Foto de Fernando Méndez" 
-        class="w-full max-w-md rounded-lg shadow-lg"
-      />
-    </div>
-  </div>
+  
 </section>
-
-<style is:global>
-  .shiny-sec {
-    background: linear-gradient(135deg, #a476ff 25%, #eee5ff 50%, #a476ff 75%);
-    background-size: 400% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shine 3s linear infinite;
-  }
-
-  @keyframes shine {
-    0% {
-      background-position: 100% 50%;
-    }
-    30%,
-    70% {
-      background-position: 0% 50%;
-    }
-  }
-</style>
