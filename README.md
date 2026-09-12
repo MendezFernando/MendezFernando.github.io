@@ -1,65 +1,31 @@
-# Portfolio
-![OscarHernandez-portfolio](https://github.com/user-attachments/assets/e284a42b-15c5-495c-99c7-ad5c1eb3bbe7)
-[![Deploy Status](https://img.shields.io/badge/Deploy-Vercel-black?style=flat&logo=vercel)](tu-url-deploy)
+# Fernando Méndez — Portafolio
 
----
+Portafolio personal de análisis de datos: https://mendezfernando.github.io/
 
-[Demo](https://oscarhernandez.vercel.app/)
-
-[Astro Themes](https://astro.build/themes/details/dark-minimal/)
-
-[ReactBits Showcase](https://www.reactbits.dev/showcase) 
-
-The component `<LetterGlitch \>` was taken from [ReactBits.dev](https://www.reactbits.dev/)
-
-## **Stack**  
-### **Frontend**  
+## Stack
 ![Astro](https://img.shields.io/badge/Astro-FF5D01?logo=astro&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
 
-### **Tools**  
-![Figma](https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white)
-![Prettier](https://img.shields.io/badge/Prettier-F7B93E?logo=prettier&logoColor=black)
-![Canva](https://img.shields.io/badge/Canva-c900c3?logo=canva&logoColor=white)
-
-### **Show your favorite Spotify album (or your own)** ![Spotify](https://img.shields.io/badge/Spotify-06cc1a?logo=spotify&logoColor=white)
-1. Choose your Spotify album
-2. Access the share options
-3. Select 'copy embed code'
+## Estructura
 ```
-<iframe src="https://open.spotify.com/embed/album/ALBUM_ID" style="border-radius:12px border:0;" class="w-full h-40" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-```
-4. Insert the embed code on footer.astro
-
-That's it!
-
-## **Project structure**
-```
-public/
-└── svg/
+public/          imágenes, íconos (svg/) y favicon
+docs/cv.pdf      CV descargable
 src/
-├── Components/
-├── layouts/
-├── React/
-└── pages/
+├── pages/index.astro        página principal (arma las secciones)
+├── components/              secciones: home, projects, aboutMe, contact, footer
+├── collections/experiences.json   experiencia laboral (timeline)
+├── React/                   componentes interactivos
+└── layouts/Layout.astro     <head>, colores globales
 ```
 
-## **Local configuration** 
-1. Clone the repo:  
+## Trabajar en local
 ```
-git clone https://github.com/gothsec/portfolio
-```
-2. Install dependencies:
-```  
-npm install
-```
-3. Start the develpoment server:
-```  
-npm run dev
+npm install      # solo la primera vez o si cambian dependencias
+npm run dev      # abre http://localhost:4321 con recarga automática
+npm run build    # compila a dist/ igual que en GitHub (para verificar)
 ```
 
-> **Important Notice:**  
-> This project is licensed under the [MIT License](https://opensource.org/licenses/mit).  
-> According to the license terms, any redistribution (including compiled or modified versions), you **must** retain the original copyright 
-> notice and the full license text. Copyright © 2025 Oscar Hernandez. All rights reserved.
+## Publicar
+Cada `git push` a `main` dispara `.github/workflows/astro.yml`, que compila
+el sitio y lo publica en GitHub Pages en 1–2 minutos.

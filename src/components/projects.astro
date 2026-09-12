@@ -1,7 +1,5 @@
 ---
 import { Image } from "astro:assets";
-import svgl from "../../public/svgl.png";
-import stockin from "../../public/stockin.png";
 
 interface Project {
   title: string;
@@ -11,22 +9,8 @@ interface Project {
   status: string;
 }
 
-const projects: Project[] = [
-  {
-    title: "In Development",
-    image: stockin as ImageMetadata,
-    link: "",
-    preview: "",
-    status: "In Development",
-  },
-  {
-    title: "In Development",
-    image: stockin as ImageMetadata,
-    link: "",
-    preview: "",
-    status: "In Development",
-  },
-];
+// Add your projects here (import the image at the top, like: import myImg from "../../public/my.png";)
+const projects: Project[] = [];
 ---
 
 <section
@@ -36,6 +20,10 @@ const projects: Project[] = [
   <div class="max-w-5xl mx-auto">
     <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">My work</h2>
     <h3 class="text-4xl md:text-5xl font-medium mb-8">Projects</h3>
+
+    {projects.length === 0 && (
+      <p class="text-[var(--white-icon)]">Projects coming soon.</p>
+    )}
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       {
