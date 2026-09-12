@@ -1,6 +1,6 @@
 # Fernando Méndez — Portafolio
 
-Portafolio personal de análisis de datos: https://mendezfernando.github.io/
+Portafolio personal de ingeniería de datos: https://mendezfernando.github.io/
 
 ## Stack
 ![Astro](https://img.shields.io/badge/Astro-FF5D01?logo=astro&logoColor=white)
@@ -9,8 +9,8 @@ Portafolio personal de análisis de datos: https://mendezfernando.github.io/
 
 ## Estructura
 ```
-public/          imágenes, íconos (svg/) y favicon
-docs/cv.pdf      CV descargable
+public/              íconos (svg/) y favicon.svg
+public/docs/cv.pdf   CV descargable
 src/
 ├── pages/index.astro        página principal (arma las secciones)
 ├── components/              secciones: home, projects, aboutMe, contact, footer

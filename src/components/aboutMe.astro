@@ -2,7 +2,6 @@
 import Card from "../components/Card.astro";
 import EXPERIENCES from "../collections/experiences.json"
 import TimelineItem from "../components/TimelineItem.astro";
-import LetterGlitch from "../React/LetterGlitch.tsx";
 ---
 
 <section id="aboutMe" class="flex flex-col max-w-5xl mx-auto">
@@ -13,7 +12,7 @@ import LetterGlitch from "../React/LetterGlitch.tsx";
   </h2>
   
 
-<article class="max-w-5xl mx-auto flex lg:flex-row md:flex-col sm:flex-col gap-4 p-4">
+<article class="max-w-5xl mx-auto flex flex-col lg:flex-row gap-4 py-4">
   <Card className="text-gray-300 dark:text-gray-300 h-fit">
     <div class="flex flex-col gap-2 text-sm sm:text-base">
       <h3
@@ -22,16 +21,19 @@ import LetterGlitch from "../React/LetterGlitch.tsx";
         Short Bio
       </h3>
       <p>
-        I'm a data analyst working in the pharmaceutical industry, turning
-        sales and market audits into clear decisions for commercial teams.
+        I'm a data engineer building production pipelines in Python and SQL for
+        the commercial area of a global pharma company, turning complex external
+        sources — IQVIA, prescription audits, CRM — into reliable, reproducible
+        deliverables.
       </p>
       <p>
-        My day-to-day is SQL, Python and Power BI: cleaning raw audit files,
-        building territory and brick-level views, and automating monthly
-        reports that used to be done by hand.
+        My work is ingestion, dimensional modelling and data quality: idempotent
+        loads, control-total reconciliation, entity resolution and automated
+        tests, so numbers reconcile before anyone reads them.
       </p>
       <p>
-        Currently, I'm building an analytics panel for pharma sales teams.
+        I work with PySpark, Delta Lake, dbt, Airflow, PostgreSQL and Docker on
+        a medallion lakehouse architecture.
       </p>
     </div>
     <div class="flex flex-col gap-2">
