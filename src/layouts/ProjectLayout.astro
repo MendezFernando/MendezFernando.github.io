@@ -1,0 +1,308 @@
+---
+// Shared shell for every project page: top bar, hero, content slot,
+// "More projects" and footer. Title, repo and stack come from collections/projects.ts.
+import Layout from "@/layouts/Layout.astro";
+import Footer from "@/components/footer.astro";
+import { projects, iconFor } from "@/collections/projects";
+
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  slug: string;
+  eyebrow: string;
+  // may contain simple HTML (e.g. a highlighted <span>)
+  heading: string;
+  lede: string;
+  sections?: Section[];
+  // hide the stack chips when the page already has its own toolbox section
+  showStack?: boolean;
+}
+
+const { slug, eyebrow, heading, lede, sections = [], showStack = true } = Astro.props;
+const project = projects.find((p) => p.slug === slug);
+if (!project) throw new Error(`Unknown project slug: ${slug}`);
+const others = projects.filter((p) => p.slug !== slug);
+
+const githubPath =
+  "M12 2C6.48 2 2 6.48 2 12c0 4.43 2.86 8.17 6.84 9.49.5.09.68-.21.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84c.85 0 1.71.11 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 22 12c0-5.52-4.48-10-10-10z";
+
+const pill =
+  "inline-flex items-center gap-2 text-sm text-[var(--white-icon)] hover:text-white transition border border-[var(--white-icon-tr)] rounded-full px-4 py-2 bg-[#1414149c] hover:bg-[var(--white-icon-tr)] shrink-0";
+---
+
+<Layout title={`${project.title} · Fernando Méndez`} description={project.description}>
+  <header
+    class="sticky top-0 z-50 -mx-5 sm:-mx-8 lg:-mx-20 px-5 sm:px-8 lg:px-20 bg-[#101010e6] backdrop-blur-xl border-b border-[#ffffff10]"
+  >
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-4 py-3">
+      <a href="/#projects" class={pill}>
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M7.83 11H20v2H7.83l5.36 5.36-1.41 1.42L4 12l7.78-7.78 1.41 1.42L7.83 11Z"></path></svg>
+        Back to portfolio
+      </a>
+      {
+        sections.length > 0 && (
+          <nav class="hidden lg:flex items-center gap-5 text-sm text-[var(--white-icon)]" aria-label="On this page">
+            {sections.map((s) => (
+              <a href={`#${s.id}`} class="hover:text-white transition">{s.label}</a>
+            ))}
+          </nav>
+        )
+      }
+      <a href={project.repo} target="_blank" rel="noopener noreferrer" class={pill} aria-label="Repository on GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d={githubPath}></path></svg>
+        <span class="hidden sm:inline">Repository</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="text-[var(--white)] max-w-5xl mx-auto pb-16">
+    <!-- Hero -->
+    <section class="relative pt-12 md:pt-20 pb-12">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <p class="text-base md:text-lg text-[var(--sec)] shiny-sec mb-3">{eyebrow}</p>
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-medium leading-tight text-balance" set:html={heading} />
+      <p class="mt-6 text-base md:text-xl text-[var(--white-icon)] max-w-3xl">{lede}</p>
+      <div class="mt-6 max-w-3xl empty:hidden"><slot name="note" /></div>
+
+      <div class="flex flex-wrap gap-3 mt-8">
+        <a
+          href={project.repo}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--sec)] text-[var(--background)] font-semibold hover:opacity-90 transition"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="size-5" aria-hidden="true"><path d={githubPath}></path></svg>
+          View repository
+        </a>
+        {
+          sections[0] && (
+            <a
+              href={`#${sections[0].id}`}
+              class="px-5 py-3 rounded-xl border border-[var(--white-icon-tr)] bg-[#1414149c] text-[var(--white-icon)] hover:text-white hover:bg-[var(--white-icon-tr)] transition"
+            >
+              Explore the project
+            </a>
+          )
+        }
+      </div>
+
+      {
+        showStack && (
+          <ul class="flex flex-wrap gap-2 mt-10" aria-label="Tech stack">
+            {project.stack.map((tool) => {
+              const icon = iconFor(tool);
+              return (
+                <li class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--white-icon-tr)] bg-[#1414149c] text-sm text-[var(--white-icon)]">
+                  {icon && <img src={icon} alt="" class="size-4 object-contain" loading="lazy" />}
+                  {tool}
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </section>
+
+    <slot />
+
+    <!-- More projects -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Keep exploring</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-8">More projects</h3>
+      <div class="grid md:grid-cols-2 gap-4">
+        {
+          others.map((p) => (
+            <a
+              href={`/projects/${p.slug}`}
+              class="group flex flex-col gap-2 rounded-2xl border border-[var(--white-icon-tr)] bg-[#1414149c] p-5 hover:border-[#a476ff60] transition"
+            >
+              <span class="text-xs uppercase tracking-widest text-[var(--sec)]">{p.status}</span>
+              <span class="text-lg font-semibold">{p.title}</span>
+              <span class="text-sm text-[var(--white-icon)] line-clamp-2">{p.description}</span>
+              <span class="text-sm text-white mt-1 transition-transform group-hover:translate-x-1">Read case study →</span>
+            </a>
+          ))
+        }
+      </div>
+      <div class="flex flex-wrap gap-3 mt-10">
+        <a href="/#contact" class="px-5 py-3 rounded-xl bg-[var(--sec)] text-[var(--background)] font-semibold hover:opacity-90 transition">
+          Get in touch
+        </a>
+        <a
+          href="/#projects"
+          class="px-5 py-3 rounded-xl border border-[var(--white-icon-tr)] bg-[#1414149c] text-[var(--white-icon)] hover:text-white hover:bg-[var(--white-icon-tr)] transition"
+        >
+          All projects
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style is:global>
+  /* Building blocks shared by every project page */
+  .pj-card {
+    border: 1px solid var(--white-icon-tr);
+    background: #1414149c;
+    border-radius: 1rem;
+  }
+  .pj-note {
+    border: 1px solid var(--white-icon-tr);
+    border-left: 3px solid var(--sec);
+    background: #1414149c;
+    border-radius: 0.9rem;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    color: var(--white-icon);
+  }
+  .pj-note.warn {
+    border-left-color: #f6ad55;
+  }
+  .pj-note .lab {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--sec);
+    margin-bottom: 0.35rem;
+  }
+  .pj-note.warn .lab {
+    color: #f6ad55;
+  }
+  .pj-note p + p {
+    margin-top: 0.6rem;
+  }
+  .pj-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--sec);
+    border: 1px solid #a476ff50;
+    background: #a476ff12;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+  }
+  .pj-sub {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--white);
+    margin: 2.5rem 0 0.75rem;
+  }
+  .pj-text {
+    color: var(--white-icon);
+    max-width: 48rem;
+  }
+  .pj-text p + p {
+    margin-top: 1rem;
+  }
+  .pj-text strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .pj-table {
+    overflow-x: auto;
+    border: 1px solid var(--white-icon-tr);
+    border-radius: 1rem;
+    background: #1414149c;
+  }
+  .pj-table table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+  .pj-table th,
+  .pj-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--white-icon-tr);
+    vertical-align: top;
+  }
+  .pj-table th {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white-icon);
+    font-weight: 600;
+  }
+  .pj-table tr:last-child td {
+    border-bottom: none;
+  }
+  .pj-table td.muted {
+    color: var(--white-icon);
+  }
+  .pj-list {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .pj-list li {
+    position: relative;
+    padding-left: 1.3rem;
+    color: var(--white-icon);
+    font-size: 0.92rem;
+  }
+  .pj-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--sec);
+  }
+  .pj-list strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .pj-figure {
+    border: 1px solid var(--white-icon-tr);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #101010;
+    margin-top: 1.5rem;
+  }
+  .pj-figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .pj-figure figcaption {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--white-icon);
+    border-top: 1px solid var(--white-icon-tr);
+    background: #1414149c;
+  }
+  .font-mono {
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+</style>
+
+<style>
+  .hero-glow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(480px, 80vw);
+    height: 360px;
+    background: radial-gradient(circle, #a476ff26 0%, transparent 65%);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  :global(html) {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+</style>

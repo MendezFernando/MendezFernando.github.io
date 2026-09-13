@@ -1,0 +1,489 @@
+---
+import ProjectLayout from "@/layouts/ProjectLayout.astro";
+import Section from "@/components/project/Section.astro";
+import Stats from "@/components/project/Stats.astro";
+
+const stats = [
+  { value: "1.4M+", label: "raw records ingested" },
+  { value: "9", label: "star-schema tables" },
+  { value: "30", label: "automated data tests" },
+  { value: "100%", label: "GMV attributed (SCD2)" },
+];
+
+interface Node {
+  title: string;
+  detail: string;
+  icons: string[];
+  tone: string;
+}
+
+const pipeline: Node[] = [
+  { title: "Sources", detail: "Olist CSVs · FX & weather APIs · clickstream", icons: ["python"], tone: "#f3f3f310" },
+  { title: "Bronze", detail: "Raw, immutable, partitioned Parquet", icons: ["minio", "parquet"], tone: "#cd7f3299" },
+  { title: "Silver", detail: "Clean, typed, deduplicated Delta tables", icons: ["spark", "delta-lake"], tone: "#c0c0c099" },
+  { title: "Gold", detail: "Kimball star schema with SCD Type 2", icons: ["spark", "delta-lake"], tone: "#ffd70099" },
+  { title: "Warehouse", detail: "Business marts & data tests", icons: ["postgresql", "dbt"], tone: "#a476ff99" },
+  { title: "Consumers", detail: "Dashboards & REST API", icons: ["power bi", "fastapi"], tone: "#f3f3f310" },
+];
+
+const rails = [
+  { icon: "airflow", label: "Orchestration", text: "Airflow DAG with retries & backfills" },
+  { icon: "docker", label: "Runtime", text: "Everything in Docker Compose" },
+  { icon: "github-actions", label: "CI/CD", text: "Lint & tests on every pull request" },
+];
+
+const layers = [
+  {
+    name: "Bronze",
+    color: "#cd7f32",
+    motto: "What we received",
+    points: [
+      "Idempotent ingestion — re-runs overwrite the day's partition, never duplicate",
+      "Partitioned by ingestion date to make every batch reprocessable",
+      "Audit columns on every row: _ingested_at, _source_file, _batch_id",
+      "Structured JSON logs correlated by run_id and batch_id",
+    ],
+  },
+  {
+    name: "Silver",
+    color: "#c0c0c0",
+    motto: "What is true",
+    points: [
+      "8 business entities built with PySpark on Delta Lake",
+      "Customer identity resolved: 99,441 order-level ids → 96,096 real people",
+      "Primary keys validated before every publish; schema enforcement on write",
+      "Shared publish helper: cache, validate, write Delta, log — in one place",
+    ],
+  },
+  {
+    name: "Gold",
+    color: "#ffd700",
+    motto: "What it means",
+    points: [
+      "Star schema: 5 dimensions + 4 fact tables following Kimball",
+      "dim_seller as SCD Type 2 loaded with Delta MERGE (double-row merge key)",
+      "Point-in-time join so each sale uses the seller segment valid that day",
+      "Deterministic hash surrogate keys and -1 unknown members",
+    ],
+  },
+];
+
+const dimensions = [
+  { name: "dim_date", note: "role-playing · SCD0", x: 50, y: 12 },
+  { name: "dim_customer", note: "person grain · SCD1", x: 88, y: 38 },
+  { name: "dim_seller", note: "segment history · SCD2", x: 76, y: 86 },
+  { name: "dim_product", note: "category · SCD1", x: 24, y: 86 },
+  { name: "dim_geography", note: "IBGE region · SCD1", x: 12, y: 38 },
+];
+
+const dagStages = [
+  ["ingest_bronze"],
+  ["build_silver"],
+  ["dim_customer", "dim_product", "dim_geography", "dim_seller_scd2"],
+  ["fct_orders", "fct_order_items", "fct_payments", "fct_reviews"],
+  ["load_postgres"],
+  ["dbt_run", "dbt_test"],
+];
+
+const highlights = [
+  {
+    title: "SCD Type 2 with a single MERGE",
+    body: "A MERGE fires one action per matched row, but a changed attribute needs two: close the old version and open a new one. Solved by emitting a second copy of each changed row with a NULL merge key, forcing the insert path.",
+    tag: "Delta Lake",
+  },
+  {
+    title: "Point-in-time dimension lookups",
+    body: "Facts join dim_seller on id AND purchase date between valid_from and valid_to. Every sale keeps the segment it had when it happened, so historical reports are reproducible.",
+    tag: "Dimensional modeling",
+  },
+  {
+    title: "Idempotent & backfill-ready",
+    body: "Every job is parameterized by date (--ingestion-date, --as-of) and overwrites its own output. Re-running yesterday produces the same result — the prerequisite for retries and backfills.",
+    tag: "Reliability",
+  },
+  {
+    title: "Data quality as code",
+    body: "30 dbt tests cover uniqueness, referential integrity, accepted values and custom business rules — e.g. repeat buyers can never exceed cohort size.",
+    tag: "dbt",
+  },
+  {
+    title: "No fan traps, no ratio storage",
+    body: "Facts at different grains stay separate and are combined via drill-across. Percentages are never stored: numerators and denominators are, so they stay correct at any aggregation level.",
+    tag: "Kimball",
+  },
+  {
+    title: "Environment-agnostic config",
+    body: "One .env for credentials; only service hostnames change inside Docker. The same code runs on a laptop and inside the Airflow container without a single edit.",
+    tag: "Docker",
+  },
+];
+
+// TODO: agrega las demás regiones con los valores reales de tu query (solo Nordeste está verificado).
+const lateByRegion = [{ region: "Nordeste", pct: 14.27 }];
+const maxLate = Math.max(...lateByRegion.map((r) => r.pct));
+
+const gmvBySegment = [
+  { segment: "Bronze", gmv: 5.91, color: "#cd7f32" },
+  { segment: "Silver", gmv: 5.26, color: "#c0c0c0" },
+  { segment: "Gold", gmv: 2.42, color: "#ffd700" },
+];
+const maxGmv = Math.max(...gmvBySegment.map((s) => s.gmv));
+
+const bugs = [
+  {
+    symptom: "45% of GMV attributed to “Unknown” seller",
+    cause: "The first SCD2 version started at load date, so all older sales fell outside every validity window. Every technical check was green.",
+    fix: "Initial load now starts at a beginning-of-time sentinel. Unknown dropped to 0%.",
+  },
+  {
+    symptom: "Phantom NULL audit columns in Silver",
+    cause: "Delta rejects new columns but silently accepts missing ones — old Bronze metadata columns lived on, full of NULLs.",
+    fix: "Rebuilt the tables and learned schema enforcement is asymmetric.",
+  },
+  {
+    symptom: "Satisfaction mart skewed toward “on time”",
+    cause: "Canceled orders have is_late = 0, so they landed in the best bucket.",
+    fix: "Filtered to delivered orders only; documented the grain of analysis.",
+  },
+];
+---
+
+<ProjectLayout
+  slug="marketplace-data-platform"
+  eyebrow="Case study · Data engineering"
+  heading="Marketplace Data Platform"
+  lede="An end-to-end lakehouse for a real e-commerce marketplace: from raw CSV files to a Kimball star schema with SCD Type 2, business marts with automated data tests, and an orchestrated, containerized pipeline that answers real business questions."
+  sections={[
+    { id: "architecture", label: "Architecture" },
+    { id: "model", label: "Model" },
+    { id: "orchestration", label: "Orchestration" },
+    { id: "insights", label: "Insights" },
+    { id: "lessons", label: "Lessons" },
+  ]}
+>
+  <Stats items={stats} />
+
+  <Section
+    id="architecture"
+    eyebrow="How data flows"
+    title="Medallion lakehouse architecture"
+    intro="Data only moves forward. Bronze is the insurance policy: Silver and Gold can be rebuilt from it at any time, so a bug in business logic never means asking the source for data again."
+  >
+    <div class="flex flex-col lg:flex-row items-stretch gap-2">
+      {
+        pipeline.map((node, i) => (
+          <>
+            <div class="node pj-card flex-1 p-4" style={`border: 2px solid ${node.tone}; animation-delay:${i * 120}ms`}>
+              <div class="flex gap-2 mb-3">
+                {node.icons.map((icon) => (
+                  <img src={`/svg/${icon}.svg`} alt="" class="size-7 object-contain" loading="lazy" />
+                ))}
+              </div>
+              <p class="font-semibold text-lg">{node.title}</p>
+              <p class="text-xs text-[var(--white-icon)] mt-1 leading-snug">{node.detail}</p>
+            </div>
+            {i < pipeline.length - 1 && (
+              <div class="flex items-center justify-center">
+                <div class="flow-arrow" />
+              </div>
+            )}
+          </>
+        ))
+      }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+      {
+        rails.map((r) => (
+          <div class="rail">
+            <img src={`/svg/${r.icon}.svg`} alt="" class="size-5" />
+            <span><b>{r.label}</b> · {r.text}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+      {
+        layers.map((layer) => (
+          <div class="pj-card p-6" style={`border-top: 3px solid ${layer.color}`}>
+            <p class="text-2xl font-semibold" style={`color:${layer.color}`}>{layer.name}</p>
+            <p class="text-sm italic text-[var(--white-icon)] mb-4">“{layer.motto}”</p>
+            <ul class="space-y-3">
+              {layer.points.map((p) => (
+                <li class="flex gap-2 text-sm text-[var(--white-icon)]">
+                  <span style={`color:${layer.color}`}>▸</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section
+    id="model"
+    eyebrow="Gold layer"
+    title="Dimensional model"
+    intro="Four fact tables at different grains share five conformed dimensions. Facts are never joined directly to each other — that is how revenue gets silently inflated."
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+      <div class="lg:col-span-3 relative aspect-square max-w-[520px] w-full mx-auto">
+        <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full" aria-hidden="true">
+          {dimensions.map((d) => <line x1="50" y1="50" x2={d.x} y2={d.y} class="schema-line" />)}
+        </svg>
+        <div class="absolute -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 w-[38%] rounded-2xl p-3 text-center bg-gradient-to-br from-[#3a2a5c] to-[#241a38] border-2 border-[var(--sec)] shadow-[0_0_40px_#a476ff40]">
+          <p class="text-[10px] uppercase tracking-widest text-[var(--sec)]">facts</p>
+          <p class="text-xs sm:text-sm font-semibold leading-tight mt-1">
+            fct_order_items<br />fct_orders<br />fct_payments<br />fct_reviews
+          </p>
+        </div>
+        {
+          dimensions.map((d) => (
+            <div
+              class="absolute -translate-x-1/2 -translate-y-1/2 rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 text-center bg-[#141414] border border-[var(--white-icon-tr)]"
+              style={`left:${d.x}%;top:${d.y}%`}
+            >
+              <p class="text-[11px] sm:text-sm font-semibold">{d.name}</p>
+              <p class="text-[9px] sm:text-[11px] text-[var(--white-icon)]">{d.note}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="lg:col-span-2 space-y-4">
+        <div class="pj-card p-5">
+          <p class="font-semibold mb-2">SCD Type 2 in action</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead class="text-[var(--white-icon)]">
+                <tr><th class="pr-3 pb-2">segment</th><th class="pr-3 pb-2">valid_from</th><th class="pr-3 pb-2">valid_to</th><th class="pb-2">current</th></tr>
+              </thead>
+              <tbody>
+                <tr class="text-[var(--white-icon)]">
+                  <td class="pr-3 py-1" style="color:#cd7f32">Bronze</td><td class="pr-3">1900-01-01</td><td class="pr-3">2018-09-02</td><td>false</td>
+                </tr>
+                <tr>
+                  <td class="pr-3 py-1" style="color:#c0c0c0">Silver</td><td class="pr-3">2018-09-03</td><td class="pr-3">9999-12-31</td><td class="text-[var(--sec)]">true</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-xs text-[var(--white-icon)] mt-3">
+            Same seller, two versions, two surrogate keys. A sale in May 2018 keeps pointing to “Bronze” forever.
+          </p>
+        </div>
+        <div class="pj-note">
+          <p class="lab">Modeling rules</p>
+          <p><span class="text-white font-semibold">Grain first.</span> Every table declares “one row per…” before any column exists.</p>
+          <p><span class="text-white font-semibold">Additive measures only.</span> Rates are computed at query time from stored numerators and denominators.</p>
+          <p><span class="text-white font-semibold">Unknown members.</span> Missing keys resolve to -1 instead of silently dropping rows in joins.</p>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="orchestration"
+    eyebrow="Orchestration"
+    title="The daily DAG"
+    intro="Independent dimensions run in parallel; facts wait for them. Each task receives the logical date, which makes any past day re-runnable with a single backfill command."
+  >
+    <div class="pj-card p-5 md:p-8 overflow-x-auto">
+      <div class="flex items-center gap-3 min-w-[860px]">
+        {
+          dagStages.map((stage, i) => (
+            <>
+              <div class="flex flex-col gap-2">
+                {stage.map((task) => (
+                  <div class="dag-task">
+                    <span class="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                    <code>{task}</code>
+                  </div>
+                ))}
+              </div>
+              {i < dagStages.length - 1 && <div class="dag-edge" />}
+            </>
+          ))
+        }
+      </div>
+    </div>
+
+    <h4 class="pj-sub">Engineering highlights</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {
+        highlights.map((h) => (
+          <div class="pj-card p-6">
+            <span class="pj-tag">{h.tag}</span>
+            <p class="font-semibold text-lg mt-3 mb-2">{h.title}</p>
+            <p class="text-sm text-[var(--white-icon)] leading-relaxed">{h.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section id="insights" eyebrow="Why it matters" title="Business insights">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="pj-card p-6 lg:col-span-2">
+        <p class="font-semibold">Late deliveries by region</p>
+        <p class="text-xs text-[var(--white-icon)] mb-5">% of delivered orders that arrived after the promised date</p>
+        <div class="space-y-3">
+          {
+            lateByRegion.map((r) => (
+              <div class="grid grid-cols-[110px_1fr_56px] items-center gap-3 text-sm">
+                <span class="text-[var(--white-icon)]">{r.region}</span>
+                <div class="h-3 rounded-full bg-[#ffffff08] overflow-hidden">
+                  <div class="bar h-full rounded-full bg-gradient-to-r from-[#5e4491] to-[var(--sec)]" style={`--w:${(r.pct / maxLate) * 100}%`} />
+                </div>
+                <span class="text-right font-semibold">{r.pct.toFixed(1)}%</span>
+              </div>
+            ))
+          }
+        </div>
+        <p class="text-sm text-[var(--white-icon)] mt-5">
+          <span class="text-white font-semibold">The Northeast misses the promised date in 1 of every 7 orders</span> —
+          a clear case for region-aware delivery estimates at checkout.
+        </p>
+      </div>
+
+      <div class="pj-card p-6 flex flex-col justify-center text-center">
+        <p class="text-6xl font-semibold text-[var(--sec)]">~3%</p>
+        <p class="font-semibold mt-2">12-month repeat purchase rate</p>
+        <p class="text-sm text-[var(--white-icon)] mt-3">
+          Cohort analysis shows an acquisition-driven business: almost nobody buys twice, so growth depends on acquiring
+          new customers rather than retaining them.
+        </p>
+      </div>
+
+      <div class="pj-card p-6 lg:col-span-3">
+        <p class="font-semibold">
+          GMV by seller segment <span class="text-[var(--white-icon)] font-normal">(M BRL, segment valid at purchase date)</span>
+        </p>
+        <div class="grid grid-cols-3 gap-4 mt-6 items-end h-44">
+          {
+            gmvBySegment.map((s) => (
+              <div class="flex flex-col items-center justify-end h-full">
+                <span class="text-sm font-semibold mb-2">{s.gmv.toFixed(2)}M</span>
+                <div class="col-bar w-full max-w-[120px] rounded-t-xl" style={`--h:${(s.gmv / maxGmv) * 100}%;background:linear-gradient(to top, ${s.color}33, ${s.color})`} />
+                <span class="text-sm mt-2" style={`color:${s.color}`}>{s.segment}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="lessons"
+    eyebrow="Lessons learned"
+    title="Bugs that passed every check"
+    intro="The dangerous data bugs don't crash — they return believable numbers. These were caught by questioning results, not by red pipelines."
+  >
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {
+        bugs.map((b, i) => (
+          <div class="pj-card p-6">
+            <p class="text-[var(--sec)] text-sm font-mono">#{String(i + 1).padStart(2, "0")}</p>
+            <p class="font-semibold mt-2 mb-3">{b.symptom}</p>
+            <p class="text-xs uppercase tracking-widest text-[var(--white-icon)]">Root cause</p>
+            <p class="text-sm text-[var(--white-icon)] mb-3">{b.cause}</p>
+            <p class="text-xs uppercase tracking-widest text-emerald-400/80">Fix</p>
+            <p class="text-sm text-[var(--white-icon)]">{b.fix}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+</ProjectLayout>
+
+<style>
+  .node {
+    animation: rise 0.6s ease both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* animated arrow between stages: vertical on mobile, horizontal on desktop */
+  .flow-arrow {
+    width: 3px;
+    height: 26px;
+    background: repeating-linear-gradient(to bottom, var(--sec) 0 6px, transparent 6px 12px);
+    background-size: 100% 12px;
+    animation: flow-v 0.8s linear infinite;
+  }
+  @media (min-width: 1024px) {
+    .flow-arrow {
+      width: 22px;
+      height: 3px;
+      background: repeating-linear-gradient(to right, var(--sec) 0 6px, transparent 6px 12px);
+      background-size: 12px 100%;
+      animation: flow-h 0.8s linear infinite;
+    }
+  }
+  @keyframes flow-v { to { background-position: 0 12px; } }
+  @keyframes flow-h { to { background-position: 12px 0; } }
+
+  .rail {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    border-radius: 0.8rem;
+    border: 1px dashed var(--white-icon-tr);
+    font-size: 0.85rem;
+    color: var(--white-icon);
+  }
+  .rail b { color: var(--white); font-weight: 600; }
+
+  .schema-line {
+    stroke: #a476ff;
+    stroke-width: 0.35;
+    stroke-dasharray: 1.5 1.5;
+    animation: dash 3s linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes dash { to { stroke-dashoffset: -30; } }
+
+  .dag-task {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--white-icon-tr);
+    background: #101010;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  .dag-edge {
+    flex: 1;
+    min-width: 24px;
+    height: 2px;
+    background: linear-gradient(to right, #a476ff20, #a476ff);
+    position: relative;
+  }
+  .dag-edge::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border-left: 8px solid #a476ff;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+
+  .bar { width: var(--w); animation: grow-w 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  @keyframes grow-w { from { width: 0; } }
+  .col-bar { height: var(--h); animation: grow-h 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  @keyframes grow-h { from { height: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .node, .flow-arrow, .schema-line, .bar, .col-bar { animation: none; }
+  }
+</style>

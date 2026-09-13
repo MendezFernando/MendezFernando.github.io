@@ -1,0 +1,26 @@
+---
+// Standard section of a project page: same spacing, eyebrow and title everywhere.
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  intro?: string;
+}
+
+const { id, eyebrow, title, intro } = Astro.props;
+---
+
+<section id={id} class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+  <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">{eyebrow}</h2>
+  <h3 class="text-3xl md:text-4xl font-medium text-balance">{title}</h3>
+  {intro && <p class="mt-4 text-[var(--white-icon)] max-w-3xl">{intro}</p>}
+  <div class="mt-8">
+    <slot />
+  </div>
+</section>
+
+<style>
+  h3 {
+    text-wrap: balance;
+  }
+</style>
