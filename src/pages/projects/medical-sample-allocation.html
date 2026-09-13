@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Medical Sample Allocation — econometric study separating the effect of pharmaceutical samples from sales-force targeting bias, with a budget-neutral reallocation model.">
+<title>Medical Sample Allocation · Fernando Méndez</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..800;1,400&display=swap">
+<style>
+  :root{
+    --background:#101010;
+    --sec:#a476ff;
+    --white:#dfdfdf;
+    --white-icon:#f3f3f398;
+    --white-icon-tr:#f3f3f310;
+    --card:#1414149c;
+    --rule:#ffffff10;
+    --teal:#4fd1c5;
+    --amber:#f6ad55;
+    --green:#6ee7a8;
+    --red:#ff7a8a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Montserrat",-apple-system,system-ui,sans-serif}
+  *::selection{background:var(--sec);color:var(--background)}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+  body{background:var(--background);color:var(--white);line-height:1.65;padding:0 1.25rem}
+  @media(min-width:640px){body{padding:0 2rem}}
+  @media(min-width:1024px){body{padding:0 5rem}}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--sec);outline-offset:3px;border-radius:6px}
+
+  .wrap{max-width:64rem;margin:0 auto}
+  .prose{max-width:44rem}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:10;background:#101010e6;backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--rule)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0}
+  nav .brand{font-weight:600;text-decoration:none;letter-spacing:.01em}
+  nav .links{display:flex;gap:1.4rem;flex-wrap:wrap}
+  nav .links a{text-decoration:none;color:var(--white-icon);font-size:.9rem;transition:color .2s}
+  nav .links a:hover{color:#fff}
+  @media(max-width:640px){nav .links{display:none}}
+
+  /* hero */
+  .hero{padding:5rem 0 3.5rem}
+  .eyebrow{color:var(--sec);font-size:1.05rem;margin-bottom:.9rem}
+  h1{font-size:clamp(2.3rem,6vw,3.8rem);font-weight:500;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+  .lede{margin-top:1.4rem;font-size:1.12rem;color:var(--white-icon);max-width:44rem}
+  .meta{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:2rem}
+  .pill{font-size:.8rem;padding:.35rem .85rem;border-radius:999px;border:1px solid var(--white-icon-tr);
+        color:var(--white-icon);background:var(--card)}
+  .actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2.2rem}
+  .btn{display:inline-flex;align-items:center;gap:.55rem;text-decoration:none;padding:.8rem 1.3rem;
+       border-radius:.9rem;border:1px solid var(--white-icon-tr);background:var(--card);
+       color:var(--white-icon);font-size:.92rem;transition:background .25s,color .25s}
+  .btn:hover{background:var(--white-icon-tr);color:#fff}
+  .btn.primary{border-color:#a476ff55;color:#fff;background:linear-gradient(135deg,#241a38,#141414)}
+  .btn svg{width:1.15rem;height:1.15rem}
+
+  /* sections */
+  section{padding:3.5rem 0;border-top:1px solid var(--rule);scroll-margin-top:4rem}
+  h2{font-size:1.05rem;font-weight:500;color:var(--sec);margin-bottom:.4rem}
+  h3{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:500;line-height:1.15;margin-bottom:1.4rem;text-wrap:balance}
+  h4{font-size:1.15rem;font-weight:600;margin:2.2rem 0 .6rem}
+  p{margin-bottom:1rem}
+  .muted{color:var(--white-icon)}
+  strong{color:#fff;font-weight:600}
+
+  /* stat grid */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:.5rem}
+  .stat{border:1px solid var(--white-icon-tr);background:var(--card);border-radius:1rem;padding:1.4rem 1.3rem}
+  .stat .v{font-size:2.1rem;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#fff}
+  .stat .v.accent{color:var(--sec)}
+  .stat .k{font-size:.86rem;color:var(--white-icon);margin-top:.35rem;line-height:1.45}
+
+  /* figure cards */
+  figure{margin:2rem 0;border-radius:1rem;overflow:hidden;border:1px solid var(--white-icon-tr);background:#101010}
+  figure img{width:100%;height:auto;display:block}
+  figcaption{padding:.9rem 1.2rem;font-size:.86rem;color:var(--white-icon);border-top:1px solid var(--white-icon-tr);
+             background:var(--card)}
+
+  /* callouts */
+  .note{border:1px solid var(--white-icon-tr);border-left:3px solid var(--sec);background:var(--card);
+        border-radius:.9rem;padding:1.1rem 1.3rem;margin:1.5rem 0}
+  .note.warn{border-left-color:var(--amber)}
+  .note .lab{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sec);margin-bottom:.35rem;font-weight:600}
+  .note.warn .lab{color:var(--amber)}
+  .note p:last-child{margin-bottom:0}
+
+  /* tables */
+  .tw{overflow-x:auto;margin:1.4rem 0;border:1px solid var(--white-icon-tr);border-radius:1rem;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:.9rem}
+  th,td{padding:.75rem 1rem;text-align:left;border-bottom:1px solid var(--white-icon-tr);vertical-align:top}
+  th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--white-icon);font-weight:600}
+  tr:last-child td{border-bottom:none}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tag{display:inline-block;font-size:.72rem;padding:.12rem .55rem;border-radius:999px;font-weight:600}
+  .tag.y{background:#6ee7a81a;color:var(--green)}
+  .tag.n{background:#ff7a8a1a;color:var(--red)}
+
+  /* ladder */
+  .ladder{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.5rem 0}
+  @media(max-width:720px){.ladder{grid-template-columns:1fr}}
+  .step{border:1px solid var(--white-icon-tr);border-radius:1rem;padding:1.2rem;background:var(--card)}
+  .step .m{font-size:.8rem;color:var(--white-icon)}
+  .step .c{font-size:1.9rem;font-weight:600;font-variant-numeric:tabular-nums;margin:.25rem 0}
+  .step .d{font-size:.84rem;color:var(--white-icon);line-height:1.45}
+  .step.final{border-color:#a476ff66;background:linear-gradient(160deg,#241a38,#141414)}
+  .step.final .c{color:var(--sec)}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}}
+  ul.clean{list-style:none;display:grid;gap:.7rem;margin:1rem 0}
+  ul.clean li{padding-left:1.3rem;position:relative;color:var(--white-icon)}
+  ul.clean li::before{content:"";position:absolute;left:0;top:.62em;width:.45rem;height:.45rem;border-radius:50%;background:var(--sec)}
+
+  footer{border-top:1px solid var(--rule);padding:2.5rem 0 3rem;color:var(--white-icon);font-size:.88rem}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="https://mendezfernando.github.io/">Fernando Méndez</a>
+    <div class="links">
+      <a href="#problem">Problem</a>
+      <a href="#bias">Bias</a>
+      <a href="#findings">Findings</a>
+      <a href="#allocation">Allocation</a>
+      <a href="#methods">Methods</a>
+      <a href="#limits">Limits</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Pharmaceutical analytics · Econometrics</p>
+  <h1>Where free drug samples actually move prescriptions</h1>
+  <p class="lede">An econometric study on physician-level data from one mature market and two product
+    launches. It separates the real effect of samples from the sales force's targeting bias, and turns
+    the estimated response into a budget-neutral allocation plan.</p>
+  <div class="meta">
+    <span class="pill">2.36M observations</span>
+    <span class="pill">doctor × market × month</span>
+    <span class="pill">3 markets</span>
+    <span class="pill">Python · statsmodels · linearmodels · LightGBM</span>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="https://github.com/MendezFernando/medical-sample-allocation" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.43 2.86 8.17 6.84 9.49.5.09.68-.21.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84c.85 0 1.71.11 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+      View code on GitHub
+    </a>
+    <a class="btn" href="#findings">Read the findings</a>
+  </div>
+  <div class="note warn" style="margin-top:2rem">
+    <div class="lab">Disclaimer</div>
+    <p>All market, product, company and physician names are fictitious or replaced by aliases. Business
+      volumes have been transformed into indices and proportions, and some descriptive details were
+      generalized. Figures illustrate the methodology and must not be read as the actual commercial
+      performance of any company.</p>
+  </div>
+</header>
+
+<!-- ======================== RESULTS AT A GLANCE ======================== -->
+<section id="glance">
+  <h2>Results at a glance</h2>
+  <h3>Same budget, better targeted</h3>
+  <div class="stats">
+    <div class="stat"><div class="v accent">+54.9%</div><div class="k">incremental prescriptions by reallocating the same sample budget</div></div>
+    <div class="stat"><div class="v">50%</div><div class="k">of the apparent effect was sales-force targeting bias</div></div>
+    <div class="stat"><div class="v">6.7</div><div class="k">units per month — the point where an extra sample adds nothing</div></div>
+    <div class="stat"><div class="v">2.5×</div><div class="k">stronger response among doctors with low prior share</div></div>
+  </div>
+</section>
+
+<!-- ======================== PROBLEM ======================== -->
+<section id="problem">
+  <h2>The problem</h2>
+  <h3>A large budget, allocated without evidence</h3>
+  <div class="prose">
+    <p>Free samples are one of the largest commercial investments a pharmaceutical company makes to
+      influence prescribing. Yet their allocation typically follows rep intuition and account history,
+      not measured response.</p>
+    <p>The obvious comparison — doctors who received samples versus those who didn't — shows a
+      <strong>17-point share gap</strong>. It looks like a clear win. It isn't, and working out why is the
+      core of this project.</p>
+  </div>
+
+  <h4>Study design: contrasting cases</h4>
+  <p class="muted prose">Rather than one average effect across a whole portfolio — an estimate that describes no
+    market in particular — the analysis focuses on three markets chosen by method, not convenience.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Market</th><th>Stage</th><th>Why it was chosen</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Market A</strong> · antibiotic</td><td>Mature</td><td class="muted">Largest sample budget, broad doctor base, marked seasonality</td></tr>
+      <tr><td><strong>Market B</strong> · oral antidiabetic</td><td>Launch</td><td class="muted">Product introduced during the period — adoption observed from day one</td></tr>
+      <tr><td><strong>Market C</strong> · oral antidiabetic combo</td><td>Launch</td><td class="muted">Sibling launch, same sales force, same period — a natural contrast</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure>
+    <img src="figures/fig01_market_dynamics.png" alt="Own-product share and indexed sample deliveries over time for the three markets" loading="lazy">
+    <figcaption>Market A gains share in a shrinking market — part of that rise is a smaller denominator, which is why effects are also estimated on prescription counts. Markets B and C start at zero and follow an adoption curve.</figcaption>
+  </figure>
+</section>
+
+<!-- ======================== BIAS ======================== -->
+<section id="bias">
+  <h2>The central issue</h2>
+  <h3>Reps don't visit doctors at random</h3>
+  <div class="prose">
+    <p>Sales representatives go back to doctors who already prescribe more. Those doctors would show a
+      higher share even with no samples at all. A naive model credits that pre-existing advantage to
+      the samples.</p>
+    <p>The fix is to estimate the same coefficient under increasing control, and watch what survives.</p>
+  </div>
+
+  <div class="ladder">
+    <div class="step"><div class="m">Naive OLS</div><div class="c">+1.086</div><div class="d">pp of share per unit. Compares different doctors, controls for nothing.</div></div>
+    <div class="step"><div class="m">OLS + prior history</div><div class="c">+0.727</div><div class="d">Adds each doctor's share over the 19 months before the window.</div></div>
+    <div class="step final"><div class="m">Fixed effects</div><div class="c">+0.544</div><div class="d">Compares each doctor with himself. Everything stable about him cancels out.</div></div>
+  </div>
+
+  <figure>
+    <img src="figures/fig04_bias_correction.png" alt="Sample effect estimated under three levels of control in each market" loading="lazy">
+    <figcaption>Adding the doctor's prior history lifts R² from 0.06 to 0.29 — what a doctor already prescribed is both the best predictor and the main confounder.</figcaption>
+  </figure>
+
+  <div class="note">
+    <div class="lab">How fixed effects work</div>
+    <p>For every doctor, each monthly value is replaced by its deviation from that doctor's own average.
+      Specialty, hospital, patient mix, relationship with the rep — anything constant — appears in both
+      the value and the average, so it cancels. Including what was never measured. Replicated by hand:
+      demeaning and running plain OLS gives +0.540, matching the model's +0.544.</p>
+  </div>
+
+  <h4>A second, independent check</h4>
+  <p class="muted prose">Propensity score matching builds a comparison group from doctors who looked alike
+    <em>before</em> treatment. It removes 46% of the raw gap. An earlier version reported only 1.2% —
+    because it matched on same-period prescription volume, a variable the treatment itself changes.</p>
+  <figure>
+    <img src="figures/fig06_psm_diagnostics.png" alt="Propensity score overlap, matched-pair effect distribution, and covariate balance" loading="lazy">
+    <figcaption>Visit intensity was 0.98 standard deviations apart before matching and 0.17 after. Matched effect: +11.1 pp versus a raw gap of +20.6 pp.</figcaption>
+  </figure>
+</section>
+
+<!-- ======================== FINDINGS ======================== -->
+<section id="findings">
+  <h2>What the samples actually do</h2>
+  <h3>Conversion in mature markets, adoption in launches</h3>
+  <div class="prose">
+    <p>A share model can't distinguish two very different mechanisms: taking prescriptions from
+      competitors, or growing the whole category. So the effect was decomposed within each doctor into
+      own prescriptions and competitor prescriptions.</p>
+  </div>
+
+  <figure>
+    <img src="figures/fig11_conversion_vs_expansion.png" alt="Within-doctor effect of samples and visits on own and competitor prescriptions by market" loading="lazy">
+    <figcaption>Hatched bars are not statistically significant.</figcaption>
+  </figure>
+
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Mature market (A)</th><th>Launches (B, C)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Samples</strong></td><td>Own <strong>+0.79%</strong>, competitors <strong>−0.30%</strong><br><span class="tag y">conversion</span></td><td>Own up, competitors flat<br><span class="tag y">adoption</span></td></tr>
+      <tr><td><strong>Visits</strong></td><td>No detectable effect on own, competitor or total volume<br><span class="tag n">no effect</span></td><td>Own <em>and</em> competitor prescriptions rise<br><span class="tag y">category expansion</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note warn">
+    <div class="lab">A correction worth showing</div>
+    <p>A pooled count model first suggested visits raise prescription volume by 9–19%. Comparing each
+      doctor with himself, the effect disappears in the mature market. The pooled estimate was picking up
+      the same bias as before: reps visit high-volume doctors, so volume attracts visits rather than the
+      other way round.</p>
+  </div>
+
+  <h4>Continuity beats intensity</h4>
+  <p class="muted prose">Three-month accumulated exposure outperforms same-month delivery in every market and every
+    specification (+0.675 vs. +0.544 pp under fixed effects): the effect carries over. At equal total volume,
+    spreading deliveries across more months associates with <strong>+1.03 pp per extra month</strong> — about the
+    same as 17 additional units.</p>
+
+  <h4>And it saturates</h4>
+  <figure>
+    <img src="figures/fig05_marginal_return.png" alt="Marginal return of an extra sample unit by accumulated exposure" loading="lazy">
+    <figcaption>In the mature market the quadratic term is negative and highly significant (p &lt; 0.001). Launches show no curvature yet — they are still climbing toward equilibrium penetration.</figcaption>
+  </figure>
+
+  <h4>Launches: the event study</h4>
+  <figure>
+    <img src="figures/fig10_event_study.png" alt="Own share six months before and after the first sample delivery in launch markets" loading="lazy">
+    <figcaption>Market C shows a significant pre-trend (+1.68 pp/month): reps targeted doctors who were already adopting. Part of its apparent advantage is selection.</figcaption>
+  </figure>
+</section>
+
+<!-- ======================== ALLOCATION ======================== -->
+<section id="allocation">
+  <h2>From estimate to decision</h2>
+  <h3>The most responsive doctors get the least</h3>
+  <div class="prose">
+    <p>Splitting the response by each doctor's prior share reveals the result that matters most: doctors who
+      barely prescribed the product respond <strong>2.5 times more</strong> — they have room to convert. A doctor
+      already at 80% share can't gain 20 points. Current allocation does the opposite.</p>
+  </div>
+
+  <figure>
+    <img src="figures/fig07_heterogeneity_reallocation.png" alt="Response by prior-share tercile and current versus optimal budget allocation" loading="lazy">
+    <figcaption>Response by tercile is significant in all three groups. The low tercile also saturates at a much lower dose (3.6 vs. 8.0 units/month).</figcaption>
+  </figure>
+
+  <h4>The allocation model</h4>
+  <div class="cols">
+    <div>
+      <ul class="clean">
+        <li><strong>Objective:</strong> maximize incremental prescriptions, not share points — a point on a high-volume doctor is worth more</li>
+        <li><strong>Response:</strong> quadratic function estimated separately per prior-share tercile</li>
+        <li><strong>Budget:</strong> units allocated equal units actually delivered — cost-neutral</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="clean">
+        <li><strong>Dose cap:</strong> no doctor above his saturation point</li>
+        <li><strong>Ceiling:</strong> gains can't exceed the room left up to 100% share</li>
+        <li><strong>Solver:</strong> greedy assignment over 0.5-unit increments, sorted by marginal gain</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v accent">+54.9%</div><div class="k">incremental own prescriptions</div></div>
+    <div class="stat"><div class="v">14% → 34%</div><div class="k">budget share for the most responsive tercile</div></div>
+    <div class="stat"><div class="v">62% → 43%</div><div class="k">budget share for doctors who already prescribe</div></div>
+  </div>
+
+  <div class="note warn">
+    <div class="lab">What the model does not include</div>
+    <p>Coverage falls from 5,909 to 3,659 doctors, and the relationship cost of that is not in the model.
+      Response is assumed homogeneous within each tercile. It is a prioritization tool — the recommendation is
+      a controlled pilot before committing the full budget.</p>
+  </div>
+
+  <h4>Is specialty a better segmenter?</h4>
+  <p class="muted prose">It's the usual commercial criterion, so it was tested. Only <strong>2 of 15</strong> specialties show a
+    significant response. The apparently large effects belong to small groups with confidence intervals too wide
+    to read. Prior share supports a policy; specialty is useful only as a secondary reach criterion.</p>
+  <figure>
+    <img src="figures/fig09_specialty_priority.png" alt="Specialties plotted by current coverage and estimated incremental value" loading="lazy">
+    <figcaption>Hollow markers are deliberately de-emphasized: they are noise, not signal.</figcaption>
+  </figure>
+</section>
+
+<!-- ======================== METHODS ======================== -->
+<section id="methods">
+  <h2>How it was built</h2>
+  <h3>From three disconnected sources to one panel</h3>
+  <div class="prose">
+    <p>Prescriptions came from an external audit, samples and visits from the CRM — with no shared key. The
+      CRM identifies doctors only by name. The bridge was the commercial physician master file, the only table
+      with name, license number and territory together.</p>
+    <p>Matching license numbers against the audit's graduation license alone linked 47% of doctors. Accepting
+      the specialty license as well raised it to 88%. Final coverage: <strong>97.2%</strong> of sample records and
+      <strong>94.8%</strong> of visits.</p>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Technique</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Two-way fixed effects</td><td class="muted">Compare each doctor with himself; month effects absorb seasonality and shocks</td></tr>
+      <tr><td>Control ladder</td><td class="muted">Quantify how much of the naive effect is targeting bias</td></tr>
+      <tr><td>Within-doctor decomposition</td><td class="muted">Separate conversion from category expansion</td></tr>
+      <tr><td>Poisson count model</td><td class="muted">Keep zero-prescription months — they are where samples failed</td></tr>
+      <tr><td>Propensity score matching</td><td class="muted">Independent bias check, pre-treatment covariates only</td></tr>
+      <tr><td>Event study + pre-trend test</td><td class="muted">Launches only, where identification holds</td></tr>
+      <tr><td>LightGBM + SHAP</td><td class="muted">Validated on unseen doctors (doctor-level split)</td></tr>
+      <tr><td>Constrained greedy allocation</td><td class="muted">Turn the response function into an executable plan</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <div class="lab">Two decisions that changed the results</div>
+    <p><strong>Keep the zeros.</strong> In Market B only 36.8% of doctors who received samples ever prescribed in that
+      market. Dropping months with no prescriptions removes exactly the cases where samples didn't work.</p>
+    <p><strong>Use the lost history.</strong> The sample record starts in March 2025 after a CRM migration, but
+      prescription data goes back 19 more months. Instead of discarding it, it became each doctor's baseline —
+      the control that raised R² from 0.06 to 0.29.</p>
+  </div>
+</section>
+
+<!-- ======================== LIMITS ======================== -->
+<section id="limits">
+  <h2>Limits</h2>
+  <h3>What this can and can't claim</h3>
+  <div class="cols">
+    <div class="step">
+      <div class="m">Supported</div>
+      <ul class="clean">
+        <li>Samples have a positive, significant effect after strict controls</li>
+        <li>In the mature market that effect is conversion from competitors</li>
+        <li>Returns diminish and response varies strongly by prior share</li>
+        <li>The naive estimate is roughly double the credible one</li>
+      </ul>
+    </div>
+    <div class="step">
+      <div class="m">Not claimed</div>
+      <ul class="clean">
+        <li>Strict causality — the data is observational</li>
+        <li>That spreading deliveries <em>causes</em> gains; that evidence is cross-sectional</li>
+        <li>An event study for the mature market — left-censored by the CRM migration</li>
+        <li>Transferability to markets with different competitive dynamics</li>
+      </ul>
+    </div>
+  </div>
+  <p class="muted prose" style="margin-top:1.5rem">The proper next step is a randomized pilot: comparable doctors, same
+    total volume, assigned to allocation schemes by lot for three to four cycles. That turns a well-founded
+    hypothesis into a verified result.</p>
+
+  <div class="note">
+    <div class="lab">Confidentiality</div>
+    <p>Built on confidential commercial data and physician personal data. Markets, products and the company are
+      replaced by aliases, business volumes appear only as indices or shares, and no data is published. The code
+      never names a market — it resolves each one by role from a private configuration file.</p>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Fernando Méndez · Professional practice report, Industrial Engineering (UNAM)</span>
+    <span><a href="https://mendezfernando.github.io/">Portfolio</a> · <a href="https://github.com/MendezFernando/medical-sample-allocation" target="_blank" rel="noopener noreferrer">Code</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

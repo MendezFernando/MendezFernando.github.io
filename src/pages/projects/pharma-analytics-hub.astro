@@ -1,0 +1,446 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+// The five sources each month and the steps of the pipeline. Content only:
+// no client, product or file names — the system belongs to the employer.
+const sources = [
+  "National sales by pack",
+  "Sales by fine geographic zone",
+  "Institutional channel",
+  "Medical prescriptions",
+];
+
+const steps = [
+  { n: "01", title: "Ingest", text: "Reads every audit, including fixed-width files of ~1M lines." },
+  { n: "02", title: "Normalize", text: "Names, periods and nomenclature against single catalogs." },
+  { n: "03", title: "Compute", text: "Rolling year, YTD, market share, evolution and penetration indices." },
+  { n: "04", title: "Validate", text: "Explicit rules, each one blocking, for review, or informative." },
+  { n: "05", title: "Deliver", text: "Excel reports with one format across every deliverable." },
+];
+
+const decisions = [
+  {
+    title: "Join by code, never by name",
+    text: "The same product arrives spelled three ways depending on the audit, but with the same code. Several historical errors came from name joins that broke silently after a rename.",
+  },
+  {
+    title: "Catalogs as the single source of truth",
+    text: "Official names, aliases and composite markets live in tables the business edits. A new consolidated market is one row, not a code change.",
+  },
+  {
+    title: "Derive instead of capture",
+    text: "Statuses that used to be maintained by hand in Excel are now computed every month. What is captured goes stale; what is derived does not.",
+  },
+  {
+    title: "History instead of recalculation",
+    text: "Commercial weights change month to month. Each period's weights are stored, so a past month reproduces exactly as it was published.",
+  },
+  {
+    title: "Severity-aware validation",
+    text: "It tells apart a market that is truly missing from one spelled differently in another source — two problems with different fixes that used to look identical.",
+  },
+  {
+    title: "Documentation that never goes stale",
+    text: "The layout of every input and output is generated from the real files and is stable across months. If it changes, a vendor changed the format.",
+  },
+];
+
+const findings = [
+  { tag: "Silent", text: "Two columns published as zero for months — a default value hid that the field was never read." },
+  { tag: "Silent", text: "Duplicated quotas summed without warning, inflating targets and sinking reported attainment." },
+  { tag: "Double count", text: "A consolidated market counted twice alongside its own components." },
+  { tag: "Broken join", text: "Packs that stopped matching their market after a product rename." },
+  { tag: "Environment", text: "Code that worked on one machine and failed on another due to library version differences." },
+];
+
+const stack = [
+  { name: "Python", icon: "/svg/python.svg" },
+  { name: "pandas", icon: null, glyph: "pandas" },
+  { name: "Excel", icon: "/svg/excel.svg" },
+  { name: "xlsxwriter", icon: null, glyph: "xlsx" },
+  { name: "TOML config", icon: null, glyph: "toml" },
+  { name: "CLI", icon: null, glyph: "cli" },
+  { name: "Git", icon: "/svg/git.svg" },
+  { name: "Automated tests", icon: null, glyph: "test" },
+];
+---
+
+<Layout title="Pharma Analytics Hub · Fernando Méndez">
+  <main class="text-[var(--white)] max-w-5xl mx-auto py-10 md:py-16">
+
+    <a href="/#projects" class="inline-flex items-center gap-2 text-sm text-[var(--white-icon)] hover:text-white transition border border-[var(--white-icon-tr)] rounded-full px-4 py-2 bg-[#1414149c]">
+      <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M7.83 11H20v2H7.83l5.36 5.36-1.41 1.42L4 12l7.78-7.78 1.41 1.42L7.83 11Z"/></svg>
+      Back to portfolio
+    </a>
+
+    <!-- Hero -->
+    <header class="mt-10 md:mt-14 grid lg:grid-cols-[1.15fr_.85fr] gap-10 items-start">
+      <div class="space-y-5">
+        <p class="text-[var(--sec)] shiny-sec text-lg">Case study · Commercial data engineering</p>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-medium leading-tight text-balance">
+          From a full workday to <span class="text-[var(--sec)]">20 minutes</span>
+        </h1>
+        <p class="text-base md:text-xl text-[var(--white-icon)]">
+          I replaced a 6–8 hour monthly process — notebooks, loose scripts and eyeball checks —
+          with a system that processes four pharmaceutical market audits, builds every report
+          and validates it before anything ships.
+        </p>
+        <p class="text-sm text-[var(--white-icon)] border-l-2 border-[var(--sec)] pl-4">
+          The system belongs to the company where I built it. No code or data here —
+          just the problem, the design and the results.
+        </p>
+        <a
+          href="https://github.com/MendezFernando/pharma-analytics-hub-case-study"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-sm text-[var(--white-icon)] hover:text-white transition border border-[var(--white-icon-tr)] rounded-full px-4 py-2 bg-[#1414149c]"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="size-4" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+          View the repository
+        </a>
+      </div>
+
+      <!-- Validation console -->
+      <figure class="rounded-2xl border border-[var(--white-icon-tr)] bg-[#1414149c] overflow-hidden font-mono text-sm" aria-label="Example validation report">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--white-icon-tr)]">
+          <div class="flex gap-1.5" aria-hidden="true">
+            <span class="size-3 rounded-full bg-[#ff5f57]"></span>
+            <span class="size-3 rounded-full bg-[#febc2e]"></span>
+            <span class="size-3 rounded-full bg-[#28c840]"></span>
+          </div>
+          <span class="text-xs text-[var(--white-icon)]">$ hub validate --month</span>
+        </div>
+        <ul class="p-4 space-y-2">
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v stop">STOP</span><span>Duplicated quotas in one zone</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v stop">STOP</span><span>Weighted market with no quota</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v rev">REV</span><span>Packs missing from this delivery</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v rev">REV</span><span>Market name differs across sources</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v ok">OK</span><span>No duplicate sales keys</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v ok">OK</span><span>Allocation preserves totals</span></li>
+          <li class="grid grid-cols-[3.5rem_1fr] gap-2"><span class="v ok">OK</span><span>Matches raw vendor file</span></li>
+        </ul>
+        <div class="px-4 py-3 border-t border-[var(--white-icon-tr)] flex items-center gap-3">
+          <span class="text-[var(--white-icon)]">Verdict</span>
+          <span class="verdict">DO NOT PUBLISH</span>
+        </div>
+      </figure>
+    </header>
+
+    <!-- Stack -->
+    <section class="mt-16 md:mt-20">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Built with</h2>
+      <ul class="flex flex-wrap gap-3">
+        {stack.map((t) => (
+          <li class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-[var(--white-icon-tr)] bg-[#1414149c] text-[var(--white-icon)]">
+            {t.icon ? (
+              <img src={t.icon} alt="" class="size-6" loading="lazy" />
+            ) : (
+              <span class="glyph" aria-hidden="true">
+                {t.glyph === "pandas" && (
+                  <svg viewBox="0 0 24 24"><rect x="4" y="2" width="3" height="7" fill="#e0e0e0"/><rect x="4" y="11" width="3" height="3" fill="#ffca00"/><rect x="4" y="16" width="3" height="7" fill="#e0e0e0"/><rect x="10.5" y="5" width="3" height="3" fill="#e70488"/><rect x="10.5" y="10" width="3" height="7" fill="#e0e0e0"/><rect x="17" y="1" width="3" height="7" fill="#e0e0e0"/><rect x="17" y="10" width="3" height="3" fill="#ffca00"/><rect x="17" y="15" width="3" height="7" fill="#e0e0e0"/></svg>
+                )}
+                {t.glyph === "xlsx" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#a476ff" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>
+                )}
+                {t.glyph === "toml" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#a476ff" stroke-width="1.8"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></svg>
+                )}
+                {t.glyph === "cli" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#a476ff" stroke-width="1.8"><rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="m6.5 9 3 3-3 3M12 15h5"/></svg>
+                )}
+                {t.glyph === "test" && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#a476ff" stroke-width="1.8"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6A2 2 0 0 0 19 18l-5-9V3"/><path d="m9 15 2 2 4-4"/></svg>
+                )}
+              </span>
+            )}
+            <span class="text-sm">{t.name}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Results: time to scale -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Result</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-8 text-balance">A workday now fits in a coffee break</h3>
+
+      <div class="rounded-2xl border border-[var(--white-icon-tr)] bg-[#1414149c] p-6 md:p-8 space-y-5" role="img" aria-label="Drawn to scale: before 6 to 8 hours, after about 20 minutes">
+        <div class="bar-row">
+          <span class="text-sm text-[var(--white-icon)]">Before</span>
+          <div class="track"><div class="fill before"></div><div class="fill range"></div></div>
+          <span class="font-mono text-right">6–8 h</span>
+        </div>
+        <div class="bar-row">
+          <span class="text-sm text-[var(--white-icon)]">After</span>
+          <div class="track"><div class="fill after"></div></div>
+          <span class="font-mono text-right text-[var(--sec)]">~20 min</span>
+        </div>
+        <div class="bar-row">
+          <span></span>
+          <div class="flex justify-between font-mono text-xs text-[var(--white-icon)]"><span>0</span><span>2h</span><span>4h</span><span>6h</span><span>8h</span></div>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-4 mt-6">
+        <div class="stat"><strong>&lt;0.01%</strong><span>difference vs. the reports already published</span></div>
+        <div class="stat"><strong>100%</strong><span>match against the raw vendor file, across months of history</span></div>
+        <div class="stat"><strong>1 cmd</strong><span>to run the full monthly cycle end to end</span></div>
+      </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12 grid md:grid-cols-2 gap-10">
+      <div>
+        <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">The problem</h2>
+        <h3 class="text-3xl md:text-4xl font-medium mb-5 text-balance">A process that grew by accumulation</h3>
+        <p class="text-[var(--white-icon)]">
+          Every month, the commercial team of a global pharmaceutical company receives market
+          audits from an external vendor. They feed the reports used by the sales force,
+          marketing and leadership. The process lived in notebooks and scripts, and the order
+          of execution lived in one person's head.
+        </p>
+      </div>
+      <ul class="space-y-3 self-center">
+        <li class="pain"><span>Each audit named the same product differently</span><em>Reports never reconciled</em></li>
+        <li class="pain"><span>Joins were done by name</span><em>A rename broke them silently</em></li>
+        <li class="pain"><span>Validation meant eyeballing</span><em>Errors surfaced after sending</em></li>
+        <li class="pain"><span>6–8 hours per cycle</span><em>A workday a month on mechanics</em></li>
+      </ul>
+    </section>
+
+    <!-- Pipeline flow diagram -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">How it works</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-10 text-balance">From four raw audits to a verdict</h3>
+
+      <div class="flow">
+        <div class="sources">
+          <p class="mini-label">Monthly audits</p>
+          {sources.map((s) => (
+            <div class="source">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-5 shrink-0" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></svg>
+              <span>{s}</span>
+            </div>
+          ))}
+          <div class="source catalog">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-5 shrink-0" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+            <span>Business catalogs</span>
+          </div>
+        </div>
+
+        <div class="connector" aria-hidden="true"><span></span></div>
+
+        <ol class="steps">
+          {steps.map((s) => (
+            <li class="step">
+              <span class="step-n">{s.n}</span>
+              <div>
+                <p class="font-semibold">{s.title}</p>
+                <p class="text-sm text-[var(--white-icon)]">{s.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div class="connector" aria-hidden="true"><span></span></div>
+
+        <div class="gate">
+          <div class="gate-node">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="size-7" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+            <p class="font-semibold">Verdict</p>
+          </div>
+          <div class="branch ok-branch">
+            <span class="v ok">PASS</span>
+            <p>Reports published</p>
+          </div>
+          <div class="branch stop-branch">
+            <span class="v stop">STOP</span>
+            <p>Findings report, nothing ships</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data layers -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Architecture</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-5 text-balance">Three layers, not five</h3>
+      <p class="text-[var(--white-icon)] max-w-3xl mb-10">
+        I started with the full medallion pattern and removed the layers that didn't separate
+        anything real. The boundary that matters here isn't bronze/silver/gold — it's
+        <span class="text-[var(--white)]">computed</span> (CSV anyone can open and audit) versus
+        <span class="text-[var(--white)]">delivered</span> (formatted Excel for the end user).
+      </p>
+
+      <div class="layers">
+        <div class="layer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-7" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>
+          <p class="font-semibold">Landing</p>
+          <p class="text-sm text-[var(--white-icon)]">Files as received. Never edited.</p>
+        </div>
+        <div class="layer-arrow" aria-hidden="true">→</div>
+        <div class="layer hot">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+          <p class="font-semibold">Computed</p>
+          <p class="text-sm text-[var(--white-icon)]">Clean, joined, auditable CSV.</p>
+        </div>
+        <div class="layer-arrow" aria-hidden="true">→</div>
+        <div class="layer-split">
+          <div class="layer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-7" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5M9 13h6M9 17h4"/></svg>
+            <p class="font-semibold">Deliverables</p>
+            <p class="text-sm text-[var(--white-icon)]">Formatted Excel reports.</p>
+          </div>
+          <div class="layer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="size-7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <p class="font-semibold">Evidence</p>
+            <p class="text-sm text-[var(--white-icon)]">Validations and findings.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-12">
+        {decisions.map((d) => (
+          <article class="rounded-2xl border border-[var(--white-icon-tr)] bg-[#1414149c] p-6">
+            <h4 class="text-lg font-semibold mb-2">{d.title}</h4>
+            <p class="text-sm text-[var(--white-icon)]">{d.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Before / after -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Before and after</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-8 text-balance">What changed for the team</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[560px] text-left text-[var(--white)]">
+          <thead>
+            <tr class="text-xs uppercase tracking-wider text-[var(--white-icon)]">
+              <th class="py-3 pr-4 font-medium"></th>
+              <th class="py-3 pr-4 font-medium">Before</th>
+              <th class="py-3 font-medium text-[var(--sec)]">After</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm md:text-base text-[var(--white)]">
+            <tr class="border-t border-[var(--white-icon-tr)]"><td class="py-4 pr-4 font-semibold">Time per cycle</td><td class="py-4 pr-4 text-[var(--white-icon)]">6–8 hours of manual work</td><td class="py-4">~20 min of runtime, plus reviewing findings</td></tr>
+            <tr class="border-t border-[var(--white-icon-tr)]"><td class="py-4 pr-4 font-semibold">Validation</td><td class="py-4 pr-4 text-[var(--white-icon)]">By eye, at the end</td><td class="py-4">Automatic, with a verdict before publishing</td></tr>
+            <tr class="border-t border-[var(--white-icon-tr)]"><td class="py-4 pr-4 font-semibold">Consistency</td><td class="py-4 pr-4 text-[var(--white-icon)]">Different names and formats per report</td><td class="py-4">One nomenclature everywhere</td></tr>
+            <tr class="border-t border-[var(--white-icon-tr)]"><td class="py-4 pr-4 font-semibold">Handover</td><td class="py-4 pr-4 text-[var(--white-icon)]">Depended on one person</td><td class="py-4">Step-by-step manual and checklist</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Findings -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">What it caught</h2>
+      <h3 class="text-3xl md:text-4xl font-medium mb-8 text-balance">Errors that produced perfectly believable numbers</h3>
+      <ul class="space-y-3">
+        {findings.map((f) => (
+          <li class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[var(--white-icon-tr)] bg-[#1414149c] px-5 py-4">
+            <span class="tag shrink-0">{f.tag}</span>
+            <p class="text-[var(--white-icon)]">{f.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Lessons -->
+    <section class="mt-16 md:mt-24 border-t border-[#ffffff10] pt-12">
+      <h2 class="text-lg text-[var(--sec)] mb-2 shiny-sec">Lessons</h2>
+      <div class="grid md:grid-cols-3 gap-4 mt-6">
+        <div class="lesson"><p class="font-semibold text-lg">A normal-looking number isn't validated.</p><p class="text-sm text-[var(--white-icon)]">The costliest errors raised no alerts.</p></div>
+        <div class="lesson"><p class="font-semibold text-lg">Validate against the raw source.</p><p class="text-sm text-[var(--white-icon)]">Matching the old process only proves you copied its bugs.</p></div>
+        <div class="lesson"><p class="font-semibold text-lg">Fewer layers, fewer exceptions.</p><p class="text-sm text-[var(--white-icon)]">Every simplification made it easier to run for someone who didn't build it.</p></div>
+      </div>
+    </section>
+
+    <p class="mt-16 pt-6 border-t border-[#ffffff10] text-sm text-[var(--white-icon)]">
+      Case study without code or data. Validation examples use generic wording.
+    </p>
+  </main>
+</Layout>
+
+<style>
+  table td { color: var(--white); }
+  table td.muted, table td:nth-child(2) { color: var(--white-icon); }
+  .font-mono { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+  .text-balance { text-wrap: balance; }
+
+  .v { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
+  .v.ok { color: #6fdc9c; }
+  .v.rev { color: #f3c25b; }
+  .v.stop { color: #ff7a70; }
+  .verdict {
+    font-family: ui-monospace, Consolas, monospace; font-size: .75rem; font-weight: 700;
+    letter-spacing: .06em; color: #ff7a70; background: #ff7a7018;
+    border: 1px solid #ff7a7040; padding: .25rem .6rem; border-radius: 999px;
+  }
+
+  .glyph { display: inline-flex; width: 1.5rem; height: 1.5rem; }
+  .glyph svg { width: 100%; height: 100%; }
+
+  /* time bars, drawn to an 8h scale */
+  .bar-row { display: grid; grid-template-columns: 4.5rem 1fr 5.5rem; gap: 1rem; align-items: center; }
+  .track { position: relative; height: 1.1rem; border-radius: 999px; background: #ffffff0d; overflow: hidden; }
+  .fill { position: absolute; inset-block: 0; left: 0; }
+  .fill.before { width: 75%; background: #6b6b6b; }
+  .fill.range { left: 75%; width: 25%; background: repeating-linear-gradient(135deg, #6b6b6b 0 5px, transparent 5px 10px); }
+  .fill.after { width: 4.17%; background: var(--sec); box-shadow: 0 0 16px #a476ff90; border-radius: 999px; }
+
+  .stat { border: 1px solid var(--white-icon-tr); background: #1414149c; border-radius: 1rem; padding: 1.25rem; display: grid; gap: .35rem; }
+  .stat strong { font-size: 2rem; font-weight: 600; color: var(--sec); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat span { font-size: .875rem; color: var(--white-icon); }
+
+  .pain { display: grid; gap: .15rem; border-left: 2px solid var(--sec); padding: .35rem 0 .35rem 1rem; }
+  .pain em { font-style: normal; font-size: .85rem; color: var(--white-icon); }
+
+  /* pipeline flow */
+  .flow { display: grid; grid-template-columns: 1fr 2.5rem 1.35fr 2.5rem 1fr; align-items: center; }
+  .mini-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--white-icon); margin-bottom: .6rem; }
+  .sources { display: grid; gap: .5rem; }
+  .source { display: flex; gap: .6rem; align-items: center; font-size: .85rem; padding: .6rem .75rem; border-radius: .75rem; border: 1px solid var(--white-icon-tr); background: #1414149c; color: var(--white-icon); }
+  .source.catalog { border-style: dashed; border-color: #a476ff60; color: var(--white); margin-top: .35rem; }
+  .connector { position: relative; height: 2px; }
+  .connector span { position: absolute; inset: 0; background: linear-gradient(90deg, #a476ff00, #a476ff); }
+  .connector span::after { content: ""; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left-color: #a476ff; }
+  .steps { list-style: none; display: grid; gap: 0; position: relative; }
+  .steps::before { content: ""; position: absolute; left: 1.2rem; top: 1.2rem; bottom: 1.2rem; width: 2px; background: linear-gradient(#a476ff, #a476ff30); }
+  .step { display: grid; grid-template-columns: 2.4rem 1fr; gap: .9rem; padding: .55rem 0; position: relative; }
+  .step-n { width: 2.4rem; height: 2.4rem; border-radius: 999px; display: grid; place-items: center; font-size: .75rem; font-weight: 700; color: var(--background); background: var(--sec); box-shadow: 0 0 0 5px var(--background); }
+  .gate { display: grid; gap: .6rem; }
+  .gate-node { display: flex; align-items: center; gap: .6rem; padding: .8rem 1rem; border-radius: 1rem; border: 1px solid #a476ff80; background: #241a38; color: var(--white); }
+  .branch { border-radius: .75rem; border: 1px solid var(--white-icon-tr); background: #1414149c; padding: .7rem .9rem; display: grid; gap: .15rem; font-size: .85rem; color: var(--white-icon); }
+  .ok-branch { border-left: 3px solid #6fdc9c; }
+  .stop-branch { border-left: 3px solid #ff7a70; }
+
+  /* layers */
+  .layers { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: .75rem; align-items: center; }
+  .layer { border: 1px solid var(--white-icon-tr); background: #1414149c; border-radius: 1rem; padding: 1.1rem; display: grid; gap: .3rem; color: var(--white-icon); }
+  .layer svg { margin-bottom: .3rem; }
+  .layer p.font-semibold { color: var(--white); }
+  .layer.hot { border-color: #a476ff90; background: linear-gradient(135deg, #241a38, #141414); color: var(--sec); }
+  .layer-arrow { color: var(--sec); font-size: 1.4rem; }
+  .layer-split { display: grid; gap: .75rem; }
+
+  .tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 600; color: var(--sec); border: 1px solid #a476ff50; background: #a476ff12; border-radius: 999px; padding: .3rem .7rem; }
+
+  .lesson { border-top: 2px solid var(--sec); padding-top: 1rem; display: grid; gap: .4rem; }
+
+  @media (max-width: 900px) {
+    .flow { grid-template-columns: 1fr; gap: 1rem; }
+    .connector { height: 2rem; width: 2px; justify-self: center; }
+    .connector span { background: linear-gradient(#a476ff00, #a476ff); }
+    .connector span::after { right: -4px; top: auto; bottom: -8px; border-left-color: transparent; border-top-color: #a476ff; }
+    .layers { grid-template-columns: 1fr; }
+    .layer-arrow { transform: rotate(90deg); justify-self: center; }
+  }
+  @media (max-width: 480px) {
+    .bar-row { grid-template-columns: 3.5rem 1fr 4.5rem; gap: .6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.shiny-sec) { animation: none; }
+  }
+</style>
