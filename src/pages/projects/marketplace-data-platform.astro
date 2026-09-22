@@ -137,11 +137,6 @@ const maxGmv = Math.max(...gmvBySegment.map((s) => s.gmv));
 
 const shots = [
   {
-    src: "/img/marketplace/powerbi.png",
-    title: "Executive dashboard",
-    text: "Power BI on the dbt marts: 99,441 orders, R$15.8M GMV, 8.11% late deliveries and ~3% 12-month repeat rate, in one screen.",
-  },
-  {
     src: "/img/marketplace/airflow-dag.png",
     title: "Daily Airflow DAG",
     text: "14 tasks end to end in ~12 minutes: ingestion, Silver, five dimensions in parallel, four facts, PostgreSQL load and dbt run + test.",
@@ -166,10 +161,19 @@ const shots = [
     title: "dbt lineage",
     text: "Gold tables feeding four business marts, with singular tests guarding the SCD Type 2 integrity.",
   },
+];
+
+// Capa de consumo: lo que se sirve una vez que el modelo existe.
+const serving = [
   {
     src: "/img/marketplace/api-docs.png",
-    title: "Serving API",
-    text: "FastAPI exposes the marts with validation, pagination and auto-generated OpenAPI docs.",
+    title: "REST API · FastAPI",
+    text: "Typed parameters, capped pagination, parameterised SQL and auto-generated OpenAPI docs over the dbt marts.",
+  },
+  {
+    src: "/img/marketplace/powerbi.png",
+    title: "Executive dashboard · Power BI",
+    text: "The star schema consumed by the business: 99,441 orders, R$15.8M GMV, 8.11% late deliveries and ~3% 12-month repeat rate.",
   },
 ];
 
@@ -196,46 +200,18 @@ const bugs = [
   slug="marketplace-data-platform"
   eyebrow="Case study · Data engineering"
   heading="Marketplace Data Platform"
-  lede="An end-to-end lakehouse for a real e-commerce marketplace: from raw CSV files to a Kimball star schema with SCD Type 2, business marts with automated data tests, and an orchestrated, containerized pipeline that answers real business questions."
+  lede="An end-to-end lakehouse over a real marketplace dataset: idempotent ingestion, a medallion architecture on Delta Lake, dimensional modeling with full history, a daily orchestrated DAG and automated tests on every change. The goal was never to move data — it was to make it reprocessable, verifiable and explainable."
   sections={[
-    { id: "evidence", label: "Built" },
     { id: "architecture", label: "Architecture" },
     { id: "model", label: "Model" },
     { id: "orchestration", label: "Orchestration" },
-    { id: "insights", label: "Insights" },
+    { id: "evidence", label: "In operation" },
+    { id: "insights", label: "Serving" },
     { id: "lessons", label: "Lessons" },
   ]}
 >
   <Stats items={stats} />
 
-  <Section
-    id="evidence"
-    eyebrow="Running system"
-    title="What it looks like in production"
-    intro="Every screen below comes from the working platform: the same pipeline that lands raw CSVs, models them and serves them to a dashboard, an API and ad-hoc SQL."
-  >
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-      {
-        shots.map((shot, i) => (
-          <figure class={`pj-card overflow-hidden ${i === 0 ? "lg:col-span-2" : ""}`}>
-            <a href={shot.src} target="_blank" rel="noopener noreferrer" aria-label={`Open ${shot.title} full size`}>
-              <img
-                src={shot.src}
-                alt={shot.title}
-                loading="lazy"
-                class="w-full object-cover object-top border-b border-[var(--white-icon-tr)] bg-[#0d0d0d]"
-                style={i === 0 ? "max-height:none" : "max-height:320px"}
-              />
-            </a>
-            <figcaption class="p-5">
-              <p class="font-semibold">{shot.title}</p>
-              <p class="text-sm text-[var(--white-icon)] mt-1 leading-relaxed">{shot.text}</p>
-            </figcaption>
-          </figure>
-        ))
-      }
-    </div>
-  </Section>
 
   <Section
     id="architecture"
@@ -399,7 +375,64 @@ const bugs = [
     </div>
   </Section>
 
-  <Section id="insights" eyebrow="Why it matters" title="Business insights">
+  <Section
+    id="evidence"
+    eyebrow="Running system"
+    title="The platform in operation"
+    intro="Not mockups: the orchestrator, the catalog, the query engine and the test lineage of the pipeline that actually runs."
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {
+        shots.map((shot, i) => (
+          <figure class={`pj-card overflow-hidden ${i === 0 ? "lg:col-span-2" : ""}`}>
+            <a href={shot.src} target="_blank" rel="noopener noreferrer" aria-label={`Open ${shot.title} full size`}>
+              <img
+                src={shot.src}
+                alt={shot.title}
+                loading="lazy"
+                class="w-full object-cover object-top border-b border-[var(--white-icon-tr)] bg-[#0d0d0d]"
+                style={i === 0 ? "max-height:none" : "max-height:320px"}
+              />
+            </a>
+            <figcaption class="p-5">
+              <p class="font-semibold">{shot.title}</p>
+              <p class="text-sm text-[var(--white-icon)] mt-1 leading-relaxed">{shot.text}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section
+    id="insights"
+    eyebrow="Serving layer"
+    title="Three ways to consume the model"
+    intro="An application asks the API, an analyst queries Athena, the business opens the dashboard. Same model, three access paths — and only then do the business answers show up."
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-10">
+      {
+        serving.map((shot) => (
+          <figure class="pj-card overflow-hidden">
+            <a href={shot.src} target="_blank" rel="noopener noreferrer" aria-label={`Open ${shot.title} full size`}>
+              <img
+                src={shot.src}
+                alt={shot.title}
+                loading="lazy"
+                class="w-full object-cover object-top border-b border-[var(--white-icon-tr)] bg-[#0d0d0d]"
+                style="max-height:320px"
+              />
+            </a>
+            <figcaption class="p-5">
+              <p class="font-semibold">{shot.title}</p>
+              <p class="text-sm text-[var(--white-icon)] mt-1 leading-relaxed">{shot.text}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <h4 class="pj-sub">What the model answered</h4>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div class="pj-card p-6 lg:col-span-2">
         <p class="font-semibold">Late deliveries by region</p>
