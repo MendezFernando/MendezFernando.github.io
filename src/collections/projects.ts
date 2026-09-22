@@ -27,8 +27,8 @@ export const projects: Project[] = [
     repo: "https://github.com/MendezFernando/marketplace-data-platform",
     status: "Personal project · 2026",
     description:
-      "End-to-end medallion lakehouse over the real Olist dataset: PySpark + Delta Lake, a Kimball star schema with SCD Type 2 and a dbt semantic layer with 30 data tests.",
-    stack: ["Python", "PySpark", "Delta Lake", "dbt", "PostgreSQL", "Docker", "Airflow", "MinIO (S3)"],
+      "End-to-end medallion lakehouse over the real Olist dataset: PySpark + Delta Lake on AWS S3, a Kimball star schema with SCD Type 2, 33 data tests in dbt, an Airflow DAG of 14 tasks and a Power BI dashboard on top.",
+    stack: ["Python", "PySpark", "Delta Lake", "dbt", "Airflow", "AWS", "PostgreSQL", "Docker", "FastAPI", "Power BI"],
   },
   {
     slug: "medical-sample-allocation",
@@ -50,7 +50,11 @@ const icons: Record<string, string> = {
   PostgreSQL: "postgresql",
   Docker: "docker",
   Airflow: "airflow",
+  AWS: "aws",
+  FastAPI: "fastapi",
+  "Power BI": "power bi",
   "MinIO (S3)": "minio",
+  pytest: "pytest",
   Excel: "excel",
   Git: "git",
 };

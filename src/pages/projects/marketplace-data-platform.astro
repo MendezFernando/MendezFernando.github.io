@@ -4,10 +4,10 @@ import Section from "@/components/project/Section.astro";
 import Stats from "@/components/project/Stats.astro";
 
 const stats = [
-  { value: "1.4M+", label: "raw records ingested" },
+  { value: "566K", label: "rows cleaned into Silver" },
   { value: "9", label: "star-schema tables" },
-  { value: "30", label: "automated data tests" },
-  { value: "100%", label: "GMV attributed (SCD2)" },
+  { value: "33", label: "automated data tests" },
+  { value: "14", label: "orchestrated daily tasks" },
 ];
 
 interface Node {
@@ -18,18 +18,19 @@ interface Node {
 }
 
 const pipeline: Node[] = [
-  { title: "Sources", detail: "Olist CSVs · FX & weather APIs · clickstream", icons: ["python"], tone: "#f3f3f310" },
-  { title: "Bronze", detail: "Raw, immutable, partitioned Parquet", icons: ["minio", "parquet"], tone: "#cd7f3299" },
+  { title: "Sources", detail: "9 Olist CSV files, 1.5M raw rows", icons: ["python"], tone: "#f3f3f310" },
+  { title: "Bronze", detail: "Raw, immutable, partitioned Parquet on S3", icons: ["aws", "parquet"], tone: "#cd7f3299" },
   { title: "Silver", detail: "Clean, typed, deduplicated Delta tables", icons: ["spark", "delta-lake"], tone: "#c0c0c099" },
   { title: "Gold", detail: "Kimball star schema with SCD Type 2", icons: ["spark", "delta-lake"], tone: "#ffd70099" },
   { title: "Warehouse", detail: "Business marts & data tests", icons: ["postgresql", "dbt"], tone: "#a476ff99" },
-  { title: "Consumers", detail: "Dashboards & REST API", icons: ["power bi", "fastapi"], tone: "#f3f3f310" },
+  { title: "Consumers", detail: "Power BI dashboard · FastAPI · Athena SQL", icons: ["power bi", "fastapi"], tone: "#f3f3f310" },
 ];
 
 const rails = [
   { icon: "airflow", label: "Orchestration", text: "Airflow DAG with retries & backfills" },
   { icon: "docker", label: "Runtime", text: "Everything in Docker Compose" },
-  { icon: "github-actions", label: "CI/CD", text: "Lint & tests on every pull request" },
+  { icon: "github-actions", label: "CI/CD", text: "Lint & 22 unit tests on every pull request" },
+  { icon: "aws", label: "Cloud", text: "S3 + Glue Catalog + Athena, least-privilege IAM" },
 ];
 
 const layers = [
@@ -103,7 +104,7 @@ const highlights = [
   },
   {
     title: "Data quality as code",
-    body: "30 dbt tests cover uniqueness, referential integrity, accepted values and custom business rules — e.g. repeat buyers can never exceed cohort size.",
+    body: "33 dbt tests cover uniqueness, referential integrity, accepted values and custom business rules — e.g. repeat buyers can never exceed cohort size.",
     tag: "dbt",
   },
   {
@@ -118,8 +119,13 @@ const highlights = [
   },
 ];
 
-// TODO: agrega las demás regiones con los valores reales de tu query (solo Nordeste está verificado).
-const lateByRegion = [{ region: "Nordeste", pct: 14.27 }];
+const lateByRegion = [
+  { region: "Nordeste", pct: 14.3 },
+  { region: "Norte", pct: 9.8 },
+  { region: "Centro-Oeste", pct: 8.0 },
+  { region: "Sudeste", pct: 7.4 },
+  { region: "Sul", pct: 7.0 },
+];
 const maxLate = Math.max(...lateByRegion.map((r) => r.pct));
 
 const gmvBySegment = [
@@ -128,6 +134,44 @@ const gmvBySegment = [
   { segment: "Gold", gmv: 2.42, color: "#ffd700" },
 ];
 const maxGmv = Math.max(...gmvBySegment.map((s) => s.gmv));
+
+const shots = [
+  {
+    src: "/img/marketplace/powerbi.png",
+    title: "Executive dashboard",
+    text: "Power BI on the dbt marts: 99,441 orders, R$15.8M GMV, 8.11% late deliveries and ~3% 12-month repeat rate, in one screen.",
+  },
+  {
+    src: "/img/marketplace/airflow-dag.png",
+    title: "Daily Airflow DAG",
+    text: "14 tasks end to end in ~12 minutes: ingestion, Silver, five dimensions in parallel, four facts, PostgreSQL load and dbt run + test.",
+  },
+  {
+    src: "/img/marketplace/aws-athena.png",
+    title: "Athena over the lakehouse",
+    text: "Serverless SQL on the Gold Delta tables registered in Glue: 1,274 rows in 2.6 s scanning 11.55 MB — cost is driven by columns read, not rows returned.",
+  },
+  {
+    src: "/img/marketplace/aws-glue.png",
+    title: "Glue Data Catalog",
+    text: "The nine Gold tables registered as native Delta tables, so any engine reads the transaction log instead of stale Parquet files.",
+  },
+  {
+    src: "/img/marketplace/aws-s3.png",
+    title: "Medallion buckets on S3",
+    text: "The same code runs against MinIO locally and S3 in the cloud; only environment variables change.",
+  },
+  {
+    src: "/img/marketplace/dbt-lineage.png",
+    title: "dbt lineage",
+    text: "Gold tables feeding four business marts, with singular tests guarding the SCD Type 2 integrity.",
+  },
+  {
+    src: "/img/marketplace/api-docs.png",
+    title: "Serving API",
+    text: "FastAPI exposes the marts with validation, pagination and auto-generated OpenAPI docs.",
+  },
+];
 
 const bugs = [
   {
@@ -154,6 +198,7 @@ const bugs = [
   heading="Marketplace Data Platform"
   lede="An end-to-end lakehouse for a real e-commerce marketplace: from raw CSV files to a Kimball star schema with SCD Type 2, business marts with automated data tests, and an orchestrated, containerized pipeline that answers real business questions."
   sections={[
+    { id: "evidence", label: "Built" },
     { id: "architecture", label: "Architecture" },
     { id: "model", label: "Model" },
     { id: "orchestration", label: "Orchestration" },
@@ -162,6 +207,35 @@ const bugs = [
   ]}
 >
   <Stats items={stats} />
+
+  <Section
+    id="evidence"
+    eyebrow="Running system"
+    title="What it looks like in production"
+    intro="Every screen below comes from the working platform: the same pipeline that lands raw CSVs, models them and serves them to a dashboard, an API and ad-hoc SQL."
+  >
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {
+        shots.map((shot, i) => (
+          <figure class={`pj-card overflow-hidden ${i === 0 ? "lg:col-span-2" : ""}`}>
+            <a href={shot.src} target="_blank" rel="noopener noreferrer" aria-label={`Open ${shot.title} full size`}>
+              <img
+                src={shot.src}
+                alt={shot.title}
+                loading="lazy"
+                class="w-full object-cover object-top border-b border-[var(--white-icon-tr)] bg-[#0d0d0d]"
+                style={i === 0 ? "max-height:none" : "max-height:320px"}
+              />
+            </a>
+            <figcaption class="p-5">
+              <p class="font-semibold">{shot.title}</p>
+              <p class="text-sm text-[var(--white-icon)] mt-1 leading-relaxed">{shot.text}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </Section>
 
   <Section
     id="architecture"
